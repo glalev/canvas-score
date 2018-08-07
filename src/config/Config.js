@@ -11,5 +11,4 @@ module.exports = {
         twoD: 1500,
         threeD: 1000,
     },
-
 };

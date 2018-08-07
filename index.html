@@ -11,53 +11,58 @@
         .status {
             position: absolute;
             left: 49%;
-            top: 49%;
             color: #d45a09;
             font-size: 2em;
             font-family: "Roboto", sans-serif;
             text-align: center;
             transform: translateX(-50%);
         }
+        .regular {
+            top: 45%;
+        }
+        .fast {
+          top: 55%;
+        }
     </style>
 </head>
 <body>
-    <span class="status">Loading...</span>
+    <span class="status regular">Loading...</span>
+    <span class="status fast"></span>
     <script>
         (function(){
-            var CanvasBenchmark = window.CanvasBenchmark;
+            var MaxObjectsBenchmark = window.MaxObjectsBenchmark;
+            var maxObjectsBenchmark = new MaxObjectsBenchmark();
+            var start = Date.now();
+            var stat = document.body.querySelector('.status.regular');
+            var statFast = document.body.querySelector('.status.fast');
+            stat.innerHTML = '';
+            statFast.innerHTML = "Calculating Max Drawn Objects...";
 
-            var benchmark = new CanvasBenchmark();
+            maxObjectsBenchmark.start();
+            maxObjectsBenchmark.once(MaxObjectsBenchmark.EVENTS.FINISH, function({objects}) {
+              statFast.innerHTML = 'Max Drawn Object: ' + objects;
 
-            var stat = document.body.querySelector('.status');
-
-            stat.innerHTML = "Running benchmark..."; // TODO rotating loader
-
-            benchmark.once(CanvasBenchmark.EVENTS.FINISH, function(result) {
-
-                var interpr = 'Score: ' + Math.round(result * 1000) + '<br>';
-                if (result < 0.2) {
-                    interpr += ' &#9733; &#9734; &#9734; &#9734; &#9734;';
-                } else if (result < 0.4) {
-                    interpr += ' &#9733; &#9733; &#9734; &#9734; &#9734;';
-                } else if (result < 0.6) {
-                    interpr += ' &#9733; &#9733; &#9733; &#9734; &#9734;';
-                } else if (result < 0.8) {
-                    interpr += ' &#9733; &#9733; &#9733; &#9733; &#9734;';
-                } else {
-                    interpr += ' &#9733; &#9733; &#9733; &#9733; &#9733;';
-                }
-                stat.innerHTML = interpr;
+              var CanvasBenchmark = window.CanvasBenchmark;
+              var benchmark = new CanvasBenchmark();
+              stat.innerHTML = "Running Regular benchmark..."; // TODO rotating loader
+              benchmark.start(0);
+              setTimeout(function() {benchmark.stop()}, 3000);
+              benchmark.once(CanvasBenchmark.EVENTS.FINISH, function(result) {
+                  var interpr = 'Score Regular Test: ' + Math.round(result * 1000) + '<br>';
+                  if (result < 0.2) {
+                      interpr += ' &#9733; &#9734; &#9734; &#9734; &#9734;';
+                  } else if (result < 0.4) {
+                      interpr += ' &#9733; &#9733; &#9734; &#9734; &#9734;';
+                  } else if (result < 0.6) {
+                      interpr += ' &#9733; &#9733; &#9733; &#9734; &#9734;';
+                  } else if (result < 0.8) {
+                      interpr += ' &#9733; &#9733; &#9733; &#9733; &#9734;';
+                  } else {
+                      interpr += ' &#9733; &#9733; &#9733; &#9733; &#9733;';
+                  }
+                  stat.innerHTML = interpr;
+              });
             });
-
-//          benchmark.start(5);
-
-//          ОR
-
-            benchmark.start(0);
-            setTimeout(function() {
-                benchmark.stop();
-            }, 3000);
-
         }());
     </script>
 </body>
