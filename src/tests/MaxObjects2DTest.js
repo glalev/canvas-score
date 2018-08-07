@@ -28,8 +28,8 @@ class MaxObjects2DTest extends Base2DTest {
         const isSlow = time > ms;
         const isFirstSlow = this._slowFrames === 0;
         this._slowFrames = (this._wasSlowFrame && !isFirstSlow && isSlow) || (!this._wasSlowFrame && isFirstSlow && isSlow) ? this._slowFrames + 1 : 0;
-        if(this._slowFrames > config.maxSlowFrames) {
-          return resolve({objects: this._limit, frames: this._frames});
+        if(this._slowFrames > config.maxSlowFrames || this._limit >= this._objs.length) {
+          return resolve({objects: this._limit, frames: this._frames}); // TODO do I need frames?
         } else {
           this._limit += isSlow ? 0 : this._frames * config.countStep;
           this._wasSlowFrame = isSlow;

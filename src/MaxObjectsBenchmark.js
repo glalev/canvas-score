@@ -22,25 +22,24 @@ class MaxObjectsBenchmark extends EventEmitter {
     constructor(config = {}) {
         super();
         const _config = Object.assign({}, Config.maxObjectsTest, config);
-        this._width = Math.round(window.innerWidth * 0.99);
-        this._height = Math.round(window.innerHeight * 0.99);
-
         this._canvas = document.createElement('canvas');
-        this._canvas.width = this._width;
-        this._canvas.height = this._height;
+      
+        if (_config.attachCanvas) {
+          this._width = Math.round(window.innerWidth * 0.99);
+          this._height = Math.round(window.innerHeight * 0.99);
 
-        this._canvas.style.zIndex = 9999;
-        this._canvas.style.position = 'absolute';
-        this._canvas.style.left = 0;
-        this._canvas.style.top = 0;
+          this._canvas.width = this._width;
+          this._canvas.height = this._height;
 
-        this._deltaFrameTime = 0;
-        this._startTimestamp = 0;
+          this._canvas.style.zIndex = 9999;
+          this._canvas.style.position = 'absolute';
+          this._canvas.style.left = 0;
+          this._canvas.style.top = 0;
+        }
 
-        this._totalTimeLapsed = 0;
         this.isPaused = false;
 
-        if (this._isWebGLSupported()) {
+        if (this._isWebGLSupported(this._canvas)) {
             console.info("WEB GL TEST");
             this._test = new MaxObjects3DTest(this._canvas, _config);
         } else {
@@ -48,7 +47,7 @@ class MaxObjectsBenchmark extends EventEmitter {
             this._test = new MaxObjects2DTest(this._canvas, _config);
         }
 
-        document.body.appendChild(this._canvas);
+        // document.body.appendChild(this._canvas);
 
         this._pageVisibilityListener = this._onPageVisibility.bind(this);
         document.addEventListener('visibilitychange', this._pageVisibilityListener);
@@ -90,12 +89,12 @@ class MaxObjectsBenchmark extends EventEmitter {
         }
     }
 
-    _isWebGLSupported() {
+    _isWebGLSupported(canvas) {
         let contextOptions = { stencil: true, failIfMajorPerformanceCaveat: true };
         try {
             if (!window.WebGLRenderingContext) return false;
 
-            let canvas = document.createElement('canvas');
+            // let canvas = document.createElement('canvas');
             let gl = canvas.getContext('webgl', contextOptions) || canvas.getContext('experimental-webgl', contextOptions);
 
             var success = !!(gl && gl.getContextAttributes().stencil);

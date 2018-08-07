@@ -6,6 +6,7 @@ module.exports = {
     },
     maxObjectsTest: {
       debug: false,
+      attachCanvas: false,
       targetFPS: 60,
       maxSlowFrames: 2,
       startingCount: 200,
