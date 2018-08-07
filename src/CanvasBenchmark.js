@@ -1,7 +1,7 @@
 const EventEmitter = require('eventemitter3');
 const Config = require('./config/Config');
-const TwoDTest = require('./tests/TwoDTest');
-const ThreeDTest = require('./tests/ThreeDTest');
+const Base2DTest = require('./tests/Base2DTest');
+const Base3DTest = require('./tests/Base3DTest');
 
 /**
  * main
@@ -19,9 +19,9 @@ class CanvasBenchmark extends EventEmitter {
 
     _canvas = null;
 
-    constructor() {
+    constructor(config = {}) {
         super();
-
+        const _config = Object.assign({}, Config.baseTest, config);
         this._width = Math.round(window.innerWidth * 0.99);
         this._height = Math.round(window.innerHeight * 0.99);
 
@@ -42,10 +42,10 @@ class CanvasBenchmark extends EventEmitter {
 
         if (this._isWebGLSupported()) {
             console.info("WEB GL TEST");
-            this._test = new ThreeDTest(this._canvas, Config.particles.threeD);
+            this._test = new Base3DTest(this._canvas, _config);
         } else {
             console.info("2D TEST");
-            this._test = new TwoDTest(this._canvas, Config.particles.twoD);
+            this._test = new Base2DTest(this._canvas, _config);
         }
 
         document.body.appendChild(this._canvas);
@@ -54,16 +54,24 @@ class CanvasBenchmark extends EventEmitter {
         document.addEventListener('visibilitychange', this._pageVisibilityListener);
         if(document.__isHidden === true) this.pause();
 
-        this._test.on('runCompleted', this._finished.bind(this));
+        // this._test.on('runCompleted', this._finished.bind(this));
 
     }
 
     /**
      * @param {Number | undefined} duration
      */
-    start(duration = Config.duration) {
+    start() {
         this._startTimestamp = performance.now();
-        this._test.run(duration);
+        this._test.run()
+          .then((frames)=> {
+            console.info("Frames accomplished", frames);
+            document.removeEventListener('visibilitychange', this._pageVisibilityListener);
+            this._canvas.parentNode.removeChild(this._canvas);
+            this._totalTimeLapsed += performance.now() - this._startTimestamp;
+            let maxFrames = (this._totalTimeLapsed / 1000) * 60;
+            this.emit(CanvasBenchmark.EVENTS.FINISH, frames / maxFrames);
+          });
     }
 
     stop() {
@@ -116,15 +124,6 @@ class CanvasBenchmark extends EventEmitter {
         } catch (e) {
             return false;
         }
-    }
-
-    _finished(frames) {
-        console.info("Frames accomplished", frames);
-        document.removeEventListener('visibilitychange', this._pageVisibilityListener);
-        this._canvas.parentNode.removeChild(this._canvas);
-        this._totalTimeLapsed += performance.now() - this._startTimestamp;
-        let maxFrames = (this._totalTimeLapsed / 1000) * 60;
-        this.emit(CanvasBenchmark.EVENTS.FINISH, frames / maxFrames);
     }
 }
 

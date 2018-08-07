@@ -19,9 +19,9 @@ class MaxObjectsBenchmark extends EventEmitter {
 
     _canvas = null;
 
-    constructor() {
+    constructor(config = {}) {
         super();
-
+        const _config = Object.assign({}, Config.maxObjectsTest, config);
         this._width = Math.round(window.innerWidth * 0.99);
         this._height = Math.round(window.innerHeight * 0.99);
 
@@ -40,12 +40,12 @@ class MaxObjectsBenchmark extends EventEmitter {
         this._totalTimeLapsed = 0;
         this.isPaused = false;
 
-        if (this._isWebGLSupported()  ) {
+        if (this._isWebGLSupported()) {
             console.info("WEB GL TEST");
-            this._test = new MaxObjects3DTest(this._canvas, Config.particles.threeD); // todo
+            this._test = new MaxObjects3DTest(this._canvas, _config);
         } else {
             console.info("2D TEST");
-            this._test = new MaxObjects2DTest(this._canvas, Config.particles.twoD);
+            this._test = new MaxObjects2DTest(this._canvas, _config);
         }
 
         document.body.appendChild(this._canvas);

@@ -1,5 +1,3 @@
-const Config = require('../config/Config');
-const EventEmitter = require('eventemitter3');
 const Renderable3D = require('../renderable/Renderable3D');
 
 // TODO literals not compatible with IE
@@ -23,21 +21,25 @@ const fragment = `
     }
 `;
 
-class ThreeDTest extends EventEmitter {
+class Base3DTest {
 
     _objs = [];
+
     _gl = null;
+
     _frames = 0;
 
     _paused = false;
 
+    _finished = false;
+
     canvas = null;
+
     shaderProgram = null;
 
-    constructor(canvas, particleCount) {
-        super();
-
+    constructor(canvas, config) {
         this.canvas = canvas;
+        this._config = config;
 
         this._gl = canvas.getContext("experimental-webgl");
         this._gl.viewportWidth = canvas.width;
@@ -62,24 +64,19 @@ class ThreeDTest extends EventEmitter {
         if (!this._gl.getShaderParameter(fs, this._gl.COMPILE_STATUS)) console.log(this._gl.getShaderInfoLog(fs));
         if (!this._gl.getProgramParameter(this.shaderProgram, this._gl.LINK_STATUS)) console.log(this._gl.getProgramInfoLog(this.shaderProgram));
 
-        for (let i = 0; i < particleCount; i++) {
+        for (let i = 0; i < this._config.particles3d; i++) {
             this._objs.push(new Renderable3D(canvas.width, canvas.height, this._gl));
         }
 
         this._gl.useProgram(this.shaderProgram);
 
         this.shaderProgram.uColor = this._gl.getUniformLocation(this.shaderProgram, "uColor");
-        if (Config.debug) {
-            this._gl.uniform4fv(this.shaderProgram.uColor, [0.0, 0.3, 0.3, 0.5]);
-        } else {
-            this._gl.uniform4fv(this.shaderProgram.uColor, [0.0, 0.0, 0.0, 0.0]);
-        }
-
-        this._renderBound = this._render.bind(this);
+        const colors = this._config.debug ? [0.0, 0.3, 0.3, 0.5] : [0.0, 0.0, 0.0, 0.0];
+        this._gl.uniform4fv(this.shaderProgram.uColor, colors);
     }
 
     run() {
-        window.requestAnimationFrame(this._renderBound);
+        return new Promise((resolve) => this._render(resolve));
     }
 
     pause() {
@@ -87,8 +84,7 @@ class ThreeDTest extends EventEmitter {
     }
 
     stop() {
-        this._paused = true;
-        this._finish();
+        this._finished = true;
     }
 
     _clear() {
@@ -96,8 +92,9 @@ class ThreeDTest extends EventEmitter {
         this._gl.clear(this._gl.COLOR_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
     }
 
-    _render() {
-        if(this._paused) return;
+    _render(resolve) {
+        if(this._finished) return resolve(this._frames)
+        if(this._paused) return this._render(resolve);
 
         this._clear();
         this._objs.forEach((obj) => {
@@ -106,12 +103,8 @@ class ThreeDTest extends EventEmitter {
         });
         this._frames++;
 
-        window.requestAnimationFrame(this._renderBound);
-    }
-
-    _finish() {
-        this.emit('runCompleted', this._frames);
+        window.requestAnimationFrame(()=> this._render(resolve));
     }
 }
 
-module.exports = ThreeDTest;
+module.exports = Base3DTest;
